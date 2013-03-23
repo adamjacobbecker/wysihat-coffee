@@ -119,6 +119,12 @@ WysiHat.Toolbar = (function() {
     var button;
     button = $("<a class=\"btn btn-mini\" href=\"#\">" + options["label"] + "</a>");
     toolbar.append(button);
+    if (options["hotkey"]) {
+      this.editor.bind('keydown', options["hotkey"], function(e) {
+        button.click();
+        return e.preventDefault();
+      });
+    }
     return button;
   };
 
@@ -277,11 +283,14 @@ The most common set of buttons that I will be using.
 
 WysiHat.Toolbar.ButtonSets.Standard = [
   {
-    label: "Bold"
+    label: "Bold",
+    hotkey: 'meta+b ctrl+b'
   }, {
-    label: "Italic"
+    label: "Italic",
+    hotkey: 'meta+i ctrl+i'
   }, {
-    label: "Underline"
+    label: "Underline",
+    hotkey: 'meta+u ctrl+u'
   }, {
     label: "Bullets",
     handler: function(editor) {

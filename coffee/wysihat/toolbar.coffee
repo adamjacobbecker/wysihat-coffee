@@ -100,6 +100,11 @@ class WysiHat.Toolbar
   createButtonElement: (toolbar, options) ->
     button = $("<a class=\"btn btn-mini\" href=\"#\">" + options["label"] + "</a>")
     toolbar.append button
+
+    if options["hotkey"] then @editor.bind 'keydown', options["hotkey"], (e) ->
+      button.click()
+      e.preventDefault()
+
     button
 
   ###
@@ -223,10 +228,13 @@ The most common set of buttons that I will be using.
 ###
 WysiHat.Toolbar.ButtonSets.Standard = [
   label: "Bold"
+  hotkey: 'meta+b ctrl+b'
 ,
   label: "Italic"
+  hotkey: 'meta+i ctrl+i'
 ,
   label: "Underline"
+  hotkey: 'meta+u ctrl+u'
 ,
   label: "Bullets"
   handler: (editor) ->
