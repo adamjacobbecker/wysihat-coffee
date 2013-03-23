@@ -13,29 +13,30 @@ module.exports = (grunt) ->
 
     coffee:
       all:
-        src: ['./coffee/*.coffee']
+        src: ['./coffee/**/*.coffee']
         dest: './js'
         options:
           bare: true
+          preserve_dirs: true
 
     concat:
       all:
         src: [
-          './js/wysihat.js'
-          './js/wysihat/dom/ierange.js'
-          './js/wysihat/dom/range.js'
-          './js/wysihat/dom/selection.js'
-          './js/wysihat/dom/bookmark.js'
-          './js/wysihat/editor.js'
-          './js/wysihat/features.js'
-          './js/wysihat/commands.js'
-          './js/wysihat/element/sanitize_contents.js'
-          './js/wysihat/events/field_change.js'
-          './js/wysihat/events/frame_loaded.js'
-          './js/wysihat/events/selection_change.js'
-          './js/wysihat/formatting.js'
-          './js/wysihat/toolbar.js'
-          './js/helper.js'
+          './js/coffee/wysihat.js'
+          './js/coffee/wysihat/dom/ierange.js'
+          './js/coffee/wysihat/dom/range.js'
+          './js/coffee/wysihat/dom/selection.js'
+          './js/coffee/wysihat/dom/bookmark.js'
+          './js/coffee/wysihat/editor.js'
+          './js/coffee/wysihat/features.js'
+          './js/coffee/wysihat/commands.js'
+          './js/coffee/wysihat/element/sanitize_contents.js'
+          './js/coffee/wysihat/events/field_change.js'
+          './js/coffee/wysihat/events/frame_loaded.js'
+          './js/coffee/wysihat/events/selection_change.js'
+          './js/coffee/wysihat/formatting.js'
+          './js/coffee/wysihat/toolbar.js'
+          './js/coffee/helper.js'
         ]
         dest: './dist/wysihat.js'
 

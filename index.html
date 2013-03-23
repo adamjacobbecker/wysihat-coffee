@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Wysihat Example</title>
+
+  <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+  <script src="http://code.jquery.com/jquery-migrate-1.1.1.min.js"></script>
+  <script src="dist/wysihat.js"></script>
+
+  <script>
+    $(function() {
+      $('#content').wysihat();
+    });
+  </script>
+
+
+  <link href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/css/bootstrap-combined.min.css" rel="stylesheet">
+  <style>
+    body {
+      padding: 10px;
+    }
+
+    .editor_toolbar {
+      margin-bottom: 5px;
+    }
+
+    .editor_toolbar .btn {
+      margin-right: 3px;
+    }
+
+    #content_editor {
+      width: 500px;
+      min-height: 400px;
+      border: 1px solid #ccc;
+      outline: none;
+    }
+  </style>
+</head>
+
+<body>
+  <form action="#" method="post" style="width: 500px;">
+    <textarea id="content"></textarea>
+  </form>
+</body>
+</html>
