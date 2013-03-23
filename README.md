@@ -1,1 +1,5 @@
-# wysihat-coffee
+## wysihat-coffee
+
+```
+grunt --config ./grunt.coffee
+```

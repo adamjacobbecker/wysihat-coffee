@@ -1,0 +1,9 @@
+{
+  "name": "wysihat-coffee",
+  "version": "0.0.1",
+  "main": "grunt.coffee",
+  "dependencies": {
+    "grunt": "*",
+    "grunt-coffee": "*"
+  }
+}
