@@ -1,6 +1,6 @@
 module.exports = (grunt) ->
 
-  tasks = 'coffee concat'
+  tasks = 'coffee concat min'
 
   path = require('path')
   exec = require('child_process').exec
@@ -39,6 +39,11 @@ module.exports = (grunt) ->
           './js/coffee/helper.js'
         ]
         dest: './dist/wysihat.js'
+
+    min:
+      all:
+        src: './dist/wysihat.js',
+        dest: './dist/wysihat.min.js'
 
     watch:
       app:
