@@ -1739,12 +1739,18 @@ WysiHat.Toolbar = (function() {
         label: "<i class='icon-list-ul'></i> Bullets",
         handler: function(editor) {
           return editor.toggleUnorderedList();
+        },
+        query: function(editor) {
+          return editor.unorderedListSelected();
         }
       }, {
         name: "Numbers",
         label: "<i class='icon-list-ol'></i> Numbers",
         handler: function(editor) {
           return editor.toggleOrderedList();
+        },
+        query: function(editor) {
+          return editor.orderedListSelected();
         }
       }
     ];

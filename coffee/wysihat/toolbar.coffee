@@ -67,11 +67,15 @@ class WysiHat.Toolbar
       label: "<i class='icon-list-ul'></i> Bullets"
       handler: (editor) ->
         editor.toggleUnorderedList()
+      query: (editor) ->
+        editor.unorderedListSelected()
     ,
       name: "Numbers"
       label: "<i class='icon-list-ol'></i> Numbers"
       handler: (editor) ->
         editor.toggleOrderedList()
+      query: (editor) ->
+        editor.orderedListSelected()
     ]
 
     $(set).each (index, button) =>
