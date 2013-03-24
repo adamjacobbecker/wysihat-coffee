@@ -2,24 +2,16 @@ var WysiHat;
 
 WysiHat = {};
 
-(function($) {
-  return $.fn.wysihat = function() {
-    var result;
-    result = void 0;
-    this.each(function() {
-      var $editor, toolbar;
-      $editor = WysiHat.Editor.attach($(this));
-      toolbar = new WysiHat.Toolbar($editor);
-      $editor.toolbar = toolbar;
-      if (result) {
-        return result.add($editor);
-      } else {
-        return result = $editor;
-      }
-    });
-    return result;
-  };
-})(jQuery);
+$.fn.wysihat = function() {
+  var result;
+  result = void 0;
+  return this.each(function() {
+    var $editor;
+    $editor = WysiHat.Editor.attach($(this));
+    $editor.toolbar = new WysiHat.Toolbar($editor);
+    return $(this).data('wysihat', result);
+  });
+};
 
 var DOMUtils;
 
@@ -1815,7 +1807,7 @@ WysiHat.Toolbar = (function() {
 
   Toolbar.prototype.createButtonElement = function(toolbar, options) {
     var button;
-    button = $("<a class=\"btn btn-mini\" href=\"#\">" + (options["display_label"] || options["label"]) + "</a>");
+    button = $("<a class=\"btn btn-mini\" href=\"#\">" + options["label"] + "</a>");
     toolbar.append(button);
     if (options["hotkey"]) {
       this.editor.bind('keydown', options["hotkey"], function(e) {

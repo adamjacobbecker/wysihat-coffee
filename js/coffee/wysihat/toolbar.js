@@ -146,7 +146,7 @@ WysiHat.Toolbar = (function() {
 
   Toolbar.prototype.createButtonElement = function(toolbar, options) {
     var button;
-    button = $("<a class=\"btn btn-mini\" href=\"#\">" + (options["display_label"] || options["label"]) + "</a>");
+    button = $("<a class=\"btn btn-mini\" href=\"#\">" + options["label"] + "</a>");
     toolbar.append(button);
     if (options["hotkey"]) {
       this.editor.bind('keydown', options["hotkey"], function(e) {

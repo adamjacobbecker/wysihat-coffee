@@ -123,7 +123,7 @@ class WysiHat.Toolbar
   inserted.
   ###
   createButtonElement: (toolbar, options) ->
-    button = $("<a class=\"btn btn-mini\" href=\"#\">" + (options["display_label"] || options["label"]) + "</a>")
+    button = $("<a class=\"btn btn-mini\" href=\"#\">" + options["label"] + "</a>")
     toolbar.append button
 
     if options["hotkey"] then @editor.bind 'keydown', options["hotkey"], (e) ->
