@@ -24,6 +24,7 @@ class WysiHat.Toolbar
   constructor: (ed) ->
     @editor = ed
     @element = @createToolbarElement()
+    @addButtonSet()
 
   ###
   WysiHat.Toolbar#createToolbarElement() -> Element
@@ -48,7 +49,31 @@ class WysiHat.Toolbar
 
   Adds a button set to the toolbar.
   ###
-  addButtonSet: (set) ->
+  addButtonSet: ->
+    set = [
+      name: "Bold"
+      label: "<strong>Bold</strong>"
+      hotkey: 'meta+b ctrl+b'
+    ,
+      name: "Italic"
+      label: "<em>Italic</em>"
+      hotkey: 'meta+i ctrl+i'
+    ,
+      name: "Underline"
+      label: "<u>Underline</u>"
+      hotkey: 'meta+u ctrl+u'
+    ,
+      name: "Bullets"
+      label: "<i class='icon-list-ul'></i> Bullets"
+      handler: (editor) ->
+        editor.toggleUnorderedList()
+    ,
+      name: "Numbers"
+      label: "<i class='icon-list-ol'></i> Numbers"
+      handler: (editor) ->
+        editor.toggleOrderedList()
+    ]
+
     $(set).each (index, button) =>
       @addButton button
 
@@ -77,7 +102,7 @@ class WysiHat.Toolbar
   "<a href='#' class='button bold'><span>Bold</span></a>"
   ###
   addButton: (options, handler) ->
-    options["name"] = options["label"].toLowerCase()  unless options["name"]
+    options["name"] = options["label"].toLowerCase() unless options["name"]
     name = options["name"]
     button = @createButtonElement(@element, options)
     handler = @buttonHandler(name, options)
@@ -98,7 +123,7 @@ class WysiHat.Toolbar
   inserted.
   ###
   createButtonElement: (toolbar, options) ->
-    button = $("<a class=\"btn btn-mini\" href=\"#\">" + options["label"] + "</a>")
+    button = $("<a class=\"btn btn-mini\" href=\"#\">" + (options["display_label"] || options["label"]) + "</a>")
     toolbar.append button
 
     if options["hotkey"] then @editor.bind 'keydown', options["hotkey"], (e) ->
@@ -196,51 +221,3 @@ class WysiHat.Toolbar
     else
       $(elem).removeClass "active"
 
-
-###
-WysiHat.Toolbar.ButtonSets
-
-A namespace for various sets of Toolbar buttons. These sets should be
-compatible with WysiHat.Toolbar, and can be added to the toolbar with:
-toolbar.addButtonSet(WysiHat.Toolbar.ButtonSets.Basic);
-###
-WysiHat.Toolbar.ButtonSets = {}
-
-###
-WysiHat.Toolbar.ButtonSets.Basic
-
-A basic set of buttons: bold, underline, and italic. This set is
-compatible with WysiHat.Toolbar, and can be added to the toolbar with:
-toolbar.addButtonSet(WysiHat.Toolbar.ButtonSets.Basic);
-###
-WysiHat.Toolbar.ButtonSets.Basic = [
-  label: "Bold"
-,
-  label: "Italic"
-,
-  label: "Underline"
-]
-
-###
-WysiHat.Toolbar.ButtonSets.Standard
-
-The most common set of buttons that I will be using.
-###
-WysiHat.Toolbar.ButtonSets.Standard = [
-  label: "Bold"
-  hotkey: 'meta+b ctrl+b'
-,
-  label: "Italic"
-  hotkey: 'meta+i ctrl+i'
-,
-  label: "Underline"
-  hotkey: 'meta+u ctrl+u'
-,
-  label: "Bullets"
-  handler: (editor) ->
-    editor.toggleUnorderedList()
-,
-  label: "Numbers"
-  handler: (editor) ->
-    editor.toggleOrderedList()
-]
