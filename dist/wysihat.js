@@ -628,12 +628,15 @@ if (jQuery.browser.msie) {
 WysiHat.Editor = (function() {
 
   function Editor($textarea) {
+    var _this = this;
     this.$el = $("<div id=\"" + $textarea.attr("id") + "_editor" + "\" class=\"editor\" contentEditable=\"true\"></div>");
     this.$el.html(WysiHat.Formatting.getBrowserMarkupFrom($textarea.val()));
     $textarea.before(this.$el);
     $textarea.hide();
-    $textarea.closest("form").submit(function() {
-      return $textarea.val(WysiHat.Formatting.getApplicationMarkupFrom(this.$el));
+    $textarea.closest("form").submit(function(e) {
+      e.preventDefault();
+      console.log(WysiHat.Formatting.getApplicationMarkupFrom(_this.$el));
+      return $textarea.val(WysiHat.Formatting.getApplicationMarkupFrom(_this.$el));
     });
     this.toolbar = new WysiHat.Toolbar(this);
     $.extend(this.$el, {
@@ -1186,6 +1189,13 @@ WysiHat.Formatting = (function() {
     },
     getApplicationMarkupFrom: function($element) {
       var accumulate, accumulateInlineElement, close, container, createLine, element, flush, getPreviouslyAccumulatedTagName, insertList, isBlockElement, isEmptyParagraph, isLineBreak, isLineElement, isListElement, isListItemElement, line, lineContainer, mode, open, previousAccumulation, read, result, walk;
+      element = $element.get(0);
+      mode = ACCUMULATING_LINE;
+      result = void 0;
+      container = void 0;
+      line = void 0;
+      lineContainer = void 0;
+      previousAccumulation = void 0;
       walk = function(nodes) {
         var i, length, node, tagName, _results;
         length = nodes.length;
@@ -1211,7 +1221,6 @@ WysiHat.Formatting = (function() {
         return _results;
       };
       open = function(tagName, node) {
-        var container, mode;
         if (mode === ACCUMULATING_LINE) {
           if (isBlockElement(tagName)) {
             if (isEmptyParagraph(node)) {
@@ -1249,7 +1258,6 @@ WysiHat.Formatting = (function() {
         }
       };
       close = function(tagName) {
-        var container, lineContainer, mode;
         if (mode === ACCUMULATING_LINE) {
           if (isLineElement(tagName)) {
             flush();
@@ -1294,7 +1302,6 @@ WysiHat.Formatting = (function() {
         return accumulate(document.createTextNode(value));
       };
       accumulateInlineElement = function(tagName, node) {
-        var element, lineContainer;
         element = node.cloneNode(false);
         if (tagName === "span") {
           if ($(node).css("fontWeight") === "bold") {
@@ -1309,7 +1316,6 @@ WysiHat.Formatting = (function() {
         return lineContainer = element;
       };
       accumulate = function(node) {
-        var line, lineContainer, previousAccumulation;
         if (mode !== EXPECTING_LIST_ITEM) {
           if (!line) {
             line = lineContainer = createLine();
@@ -1324,7 +1330,6 @@ WysiHat.Formatting = (function() {
         }
       };
       flush = function() {
-        var line, lineContainer;
         if (line && line.childNodes.length) {
           container.appendChild(line);
           return line = lineContainer = null;
@@ -1345,13 +1350,6 @@ WysiHat.Formatting = (function() {
         result.appendChild(list);
         return list;
       };
-      element = $element.get(0);
-      mode = ACCUMULATING_LINE;
-      result = void 0;
-      container = void 0;
-      line = void 0;
-      lineContainer = void 0;
-      previousAccumulation = void 0;
       result = container = $("<div></div>").get(0);
       walk(element.childNodes);
       flush();

@@ -25,6 +25,15 @@ WysiHat.Formatting = (->
     container.html()
 
   getApplicationMarkupFrom: ($element) ->
+
+    element = $element.get(0)
+    mode = ACCUMULATING_LINE
+    result = undefined
+    container = undefined
+    line = undefined
+    lineContainer = undefined
+    previousAccumulation = undefined
+
     walk = (nodes) ->
       length = nodes.length
       node = undefined
@@ -127,13 +136,6 @@ WysiHat.Formatting = (->
       list = $("<" + tagName + "></" + tagName + ">").get(0)
       result.appendChild list
       list
-    element = $element.get(0)
-    mode = ACCUMULATING_LINE
-    result = undefined
-    container = undefined
-    line = undefined
-    lineContainer = undefined
-    previousAccumulation = undefined
     result = container = $("<div></div>").get(0)
     walk element.childNodes
     flush()

@@ -1,3 +1,5 @@
+# this code isn't yet ported to the new style. waiting until i can do some browser testing and see if it's even needed.
+# @adamjacobbecker 3/24/13
 WysiHat.BrowserFeatures = (->
   createTmpIframe = (callback) ->
     frame = undefined

@@ -5,9 +5,10 @@ class WysiHat.Editor
 
     $textarea.before @$el
     $textarea.hide()
-    $textarea.closest("form").submit ->
+    $textarea.closest("form").submit (e) =>
+      e.preventDefault();
+      console.log WysiHat.Formatting.getApplicationMarkupFrom(@$el)
       $textarea.val WysiHat.Formatting.getApplicationMarkupFrom(@$el)
-
 
     # WysiHat.BrowserFeatures.run()
     @toolbar = new WysiHat.Toolbar(@)
