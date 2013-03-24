@@ -51,36 +51,27 @@ class WysiHat.Toolbar
   ###
   addButtonSet: ->
     set = [
-      name: "Bold"
+      name: "bold"
       label: "<strong>Bold</strong>"
       hotkey: 'meta+b ctrl+b'
     ,
-      name: "Italic"
+      name: "italic"
       label: "<em>Italic</em>"
       hotkey: 'meta+i ctrl+i'
     ,
-      name: "Underline"
+      name: "underline"
       label: "<u>Underline</u>"
       hotkey: 'meta+u ctrl+u'
     ,
-      name: "Bullets"
+      name: "unorderedList"
       label: "<i class='icon-list-ul'></i> Bullets"
-      handler: (editor) ->
-        editor.toggleUnorderedList()
-      query: (editor) ->
-        editor.unorderedListSelected()
     ,
-      name: "Numbers"
+      name: "orderedList"
       label: "<i class='icon-list-ol'></i> Numbers"
-      handler: (editor) ->
-        editor.toggleOrderedList()
-      query: (editor) ->
-        editor.orderedListSelected()
     ]
 
     $(set).each (index, button) =>
       @addButton button
-
 
   ###
   WysiHat.Toolbar#addButton(options[, handler]) -> undefined
@@ -106,13 +97,11 @@ class WysiHat.Toolbar
   "<a href='#' class='button bold'><span>Bold</span></a>"
   ###
   addButton: (options, handler) ->
-    options["name"] = options["label"].toLowerCase() unless options["name"]
-    name = options["name"]
     button = @createButtonElement(@element, options)
-    handler = @buttonHandler(name, options)
+    handler = @buttonHandler(options["name"], options)
     @observeButtonClick button, handler
     handler = @buttonStateHandler(name, options)
-    @observeStateChanges button, name, handler
+    @observeStateChanges button, options["name"], handler
 
   ###
   WysiHat.Toolbar#createButtonElement(toolbar, options) -> Element
@@ -146,13 +135,8 @@ class WysiHat.Toolbar
   defaults to a function that calls execCommand with the button name.
   ###
   buttonHandler: (name, options) ->
-    if options.handler
-      options.handler
-    else if options["handler"]
-      options["handler"]
-    else
-      (editor) ->
-        editor.execCommand name
+    (editor) ->
+      editor.commands[name].call(editor)
 
   ###
   WysiHat.Toolbar#observeButtonClick(element, handler) -> undefined
@@ -187,7 +171,7 @@ class WysiHat.Toolbar
       options["query"]
     else
       (editor) ->
-        editor.queryCommandState name
+        editor.states.queryCommandState name
 
   ###
   WysiHat.Toolbar#observeStateChanges(element, name, handler) -> undefined

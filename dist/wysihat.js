@@ -653,7 +653,12 @@ WysiHat.Editor = {
       $textarea.before($editArea);
     }
     $editArea.html(WysiHat.Formatting.getBrowserMarkupFrom($textarea.val()));
-    jQuery.extend($editArea, WysiHat.Commands);
+    jQuery.extend($editArea, {
+      commands: WysiHat.Commands,
+      states: WysiHat.States,
+      styleSelectors: WysiHat.StyleSelectors,
+      execCommand: WysiHat.ExecCommand
+    });
     $textarea.hide();
     $textarea.closest("form").submit(function() {
       return $textarea.val(WysiHat.Formatting.getApplicationMarkupFrom($editArea));
@@ -747,78 +752,37 @@ In this example, it is important to stop the click event so you don't
 lose your current selection.
 */
 
-WysiHat.Commands = (function(window) {
-  /*
-    WysiHat.Commands#boldSelection() -> undefined
-  
-    Bolds the current selection.
-  */
+WysiHat.StyleSelectors = {
+  fontname: "fontFamily",
+  fontsize: "fontSize",
+  forecolor: "color",
+  hilitecolor: "backgroundColor",
+  backcolor: "backgroundColor"
+};
 
-  var alignSelected, alignSelection, backgroundColorSelection, boldSelected, boldSelection, colorSelection, execCommand, fontSelection, fontSizeSelection, formatblockSelection, getSelectedStyles, indentSelected, indentSelection, insertHTML, insertImage, insertOrderedList, insertUnorderedList, italicSelected, italicSelection, linkSelected, linkSelection, orderedListSelected, outdentSelection, queryCommandState, strikethroughSelection, toggleIndentation, toggleOrderedList, toggleUnorderedList, underlineSelected, underlineSelection, unlinkSelection, unorderedListSelected;
-  boldSelection = function() {
+WysiHat.ExecCommand = function(command, ui, value) {
+  try {
+    window.document.execCommand(command, ui, value);
+  } catch (e) {
+    return null;
+  }
+  return $(document.activeElement).trigger("field:change");
+};
+
+WysiHat.Commands = {
+  bold: function() {
     return this.execCommand("bold", false, null);
-  };
-  /*
-    WysiHat.Commands#boldSelected() -> boolean
-  
-    Check if current selection is bold or strong.
-  */
-
-  boldSelected = function() {
-    return this.queryCommandState("bold");
-  };
-  /*
-    WysiHat.Commands#underlineSelection() -> undefined
-  
-    Underlines the current selection.
-  */
-
-  underlineSelection = function() {
+  },
+  underline: function() {
     return this.execCommand("underline", false, null);
-  };
-  /*
-    WysiHat.Commands#underlineSelected() -> boolean
-  
-    Check if current selection is underlined.
-  */
-
-  underlineSelected = function() {
-    return this.queryCommandState("underline");
-  };
-  /*
-    WysiHat.Commands#italicSelection() -> undefined
-  
-    Italicizes the current selection.
-  */
-
-  italicSelection = function() {
+  },
+  italic: function() {
     return this.execCommand("italic", false, null);
-  };
-  /*
-    WysiHat.Commands#italicSelected() -> boolean
-  
-    Check if current selection is italic or emphasized.
-  */
-
-  italicSelected = function() {
-    return this.queryCommandState("italic");
-  };
-  /*
-    WysiHat.Commands#italicSelection() -> undefined
-  
-    Strikethroughs the current selection.
-  */
-
-  strikethroughSelection = function() {
+  },
+  strikethrough: function() {
     return this.execCommand("strikethrough", false, null);
-  };
-  /*
-    WysiHat.Commands#indentSelection() -> undefined
-  
-    Indents the current selection.
-  */
-
-  indentSelection = function() {
+  },
+  indent: function() {
     var blockquote, node, range, selection;
     if ($.browser.mozilla) {
       selection = void 0;
@@ -840,142 +804,44 @@ WysiHat.Commands = (function(window) {
     } else {
       return this.execCommand("indent", false, null);
     }
-  };
-  /*
-    WysiHat.Commands#outdentSelection() -> undefined
-  
-    Outdents the current selection.
-  */
-
-  outdentSelection = function() {
+  },
+  outdent: function() {
     return this.execCommand("outdent", false, null);
-  };
-  /*
-    WysiHat.Commands#toggleIndentation() -> undefined
-  
-    Toggles indentation the current selection.
-  */
-
-  toggleIndentation = function() {
+  },
+  toggleIndentation: function() {
     if (this.indentSelected()) {
       return this.outdentSelection();
     } else {
       return this.indentSelection();
     }
-  };
-  /*
-    WysiHat.Commands#indentSelected() -> boolean
-  
-    Check if current selection is indented.
-  */
-
-  indentSelected = function() {
-    var node;
-    node = window.getSelection().getNode();
-    return node.is("blockquote, blockquote *");
-  };
-  /*
-    WysiHat.Commands#fontSelection(font) -> undefined
-  
-    Sets the font for the current selection
-  */
-
-  fontSelection = function(font) {
-    return this.execCommand("fontname", false, font);
-  };
-  /*
-    WysiHat.Commands#fontSizeSelection(fontSize) -> undefined
-    - font size (int) : font size for selection
-  
-    Sets the font size for the current selection
-  */
-
-  fontSizeSelection = function(fontSize) {
+  },
+  fontSize: function(fontSize) {
     return this.execCommand("fontsize", false, fontSize);
-  };
-  /*
-    WysiHat.Commands#colorSelection(color) -> undefined
-    - color (String): a color name or hexadecimal value
-  
-    Sets the foreground color of the current selection.
-  */
-
-  colorSelection = function(color) {
+  },
+  color: function(color) {
     return this.execCommand("forecolor", false, color);
-  };
-  /*
-    WysiHat.Commands#backgroundColorSelection(color) -> undefined
-    - color (string) - a color or hexadecimal value
-  
-    Sets the background color.  Firefox will fill in the background
-    color of the entire iframe unless hilitecolor is used.
-  */
-
-  backgroundColorSelection = function(color) {
+  },
+  backgroundColor: function(color) {
     if ($.browser.mozilla) {
       return this.execCommand("hilitecolor", false, color);
     } else {
       return this.execCommand("backcolor", false, color);
     }
-  };
-  /*
-    WysiHat.Commands#alignSelection(color) -> undefined
-    - alignment (string) - how the text should be aligned (left, center, right)
-  */
-
-  alignSelection = function(alignment) {
+  },
+  align: function(alignment) {
     return this.execCommand("justify" + alignment);
-  };
-  /*
-    WysiHat.Commands#backgroundColorSelected() -> alignment
-  
-    Returns the alignment of the selected text area
-  */
-
-  alignSelected = function() {
-    var node;
-    node = window.getSelection().getNode();
-    return $(node).css("textAlign");
-  };
-  /*
-    WysiHat.Commands#linkSelection(url) -> undefined
-    - url (String): value for href
-  
-    Wraps the current selection in a link.
-  */
-
-  linkSelection = function(url) {
+  },
+  link: function(url) {
     return this.execCommand("createLink", false, url);
-  };
-  /*
-    WysiHat.Commands#unlinkSelection() -> undefined
-  
-    Selects the entire link at the cursor and removes it
-  */
-
-  unlinkSelection = function() {
+  },
+  unlink: function() {
     var node;
     node = window.getSelection().getNode();
     if (this.linkSelected()) {
       window.getSelection().selectNode(node);
     }
     return this.execCommand("unlink", false, null);
-  };
-  /*
-    WysiHat.Commands#linkSelected() -> boolean
-  
-    Check if current selection is link.
-  */
-
-  linkSelected = function() {
-    var node;
-    node = window.getSelection().getNode();
-    if (node) {
-      return node.get(0).tagName.toUpperCase() === "A";
-    } else {
-      return false;
-    }
-  };
+  },
   /*
     WysiHat.Commands#formatblockSelection(element) -> undefined
     - element (String): the type of element you want to wrap your selection
@@ -984,9 +850,9 @@ WysiHat.Commands = (function(window) {
     Wraps the current selection in a header or paragraph.
   */
 
-  formatblockSelection = function(element) {
+  formatblock: function(element) {
     return this.execCommand("formatblock", false, element);
-  };
+  },
   /*
     WysiHat.Commands#toggleOrderedList() -> undefined
   
@@ -998,44 +864,21 @@ WysiHat.Commands = (function(window) {
     will only affect that item, not the entire list.
   */
 
-  toggleOrderedList = function() {
+  orderedList: function() {
     var node, selection;
     selection = void 0;
     node = void 0;
     selection = window.getSelection();
     node = selection.getNode();
-    if (this.orderedListSelected() && !node.is("ol li:last-child, ol li:last-child *")) {
+    if (this.states.orderedList() && !node.is("ol li:last-child, ol li:last-child *")) {
       selection.selectNode(node.closest("ol"));
     } else {
-      if (this.unorderedListSelected()) {
+      if (this.states.orderedList()) {
         selection.selectNode(node.closest("ul"));
       }
     }
     return this.execCommand("insertorderedlist", false, null);
-  };
-  /*
-    WysiHat.Commands#insertOrderedList() -> undefined
-  
-    Alias for WysiHat.Commands#toggleOrderedList
-  */
-
-  insertOrderedList = function() {
-    return this.toggleOrderedList();
-  };
-  /*
-    WysiHat.Commands#orderedListSelected() -> boolean
-  
-    Check if current selection is within an ordered list.
-  */
-
-  orderedListSelected = function() {
-    var element;
-    element = window.getSelection().getNode();
-    if (element) {
-      return element.is("*[contenteditable=\"\"] ol, *[contenteditable=true] ol, *[contenteditable=\"\"] ol *, *[contenteditable=true] ol *");
-    }
-    return false;
-  };
+  },
   /*
     WysiHat.Commands#toggleUnorderedList() -> undefined
   
@@ -1047,44 +890,21 @@ WysiHat.Commands = (function(window) {
     will only affect that item, not the entire list.
   */
 
-  toggleUnorderedList = function() {
+  unorderedList: function() {
     var node, selection;
     selection = void 0;
     node = void 0;
     selection = window.getSelection();
     node = selection.getNode();
-    if (this.unorderedListSelected() && !node.is("ul li:last-child, ul li:last-child *")) {
+    if (this.states.unorderedList() && !node.is("ul li:last-child, ul li:last-child *")) {
       selection.selectNode(node.closest("ul"));
     } else {
-      if (this.orderedListSelected()) {
+      if (this.states.unorderedList()) {
         selection.selectNode(node.closest("ol"));
       }
     }
     return this.execCommand("insertunorderedlist", false, null);
-  };
-  /*
-    WysiHat.Commands#insertUnorderedList() -> undefined
-  
-    Alias for WysiHat.Commands#toggleUnorderedList()
-  */
-
-  insertUnorderedList = function() {
-    return this.toggleUnorderedList();
-  };
-  /*
-    WysiHat.Commands#unorderedListSelected() -> boolean
-  
-    Check if current selection is within an unordered list.
-  */
-
-  unorderedListSelected = function() {
-    var element;
-    element = window.getSelection().getNode();
-    if (element) {
-      return element.is("*[contenteditable=\"\"] ul, *[contenteditable=true] ul, *[contenteditable=\"\"] ul *, *[contenteditable=true] ul *");
-    }
-    return false;
-  };
+  },
   /*
     WysiHat.Commands#insertImage(url) -> undefined
   
@@ -1092,9 +912,9 @@ WysiHat.Commands = (function(window) {
     Insert an image at the insertion point with the given url.
   */
 
-  insertImage = function(url) {
+  insertImage: function(url) {
     return this.execCommand("insertImage", false, url);
-  };
+  },
   /*
     WysiHat.Commands#insertHTML(html) -> undefined
   
@@ -1102,7 +922,7 @@ WysiHat.Commands = (function(window) {
     Insert HTML at the insertion point.
   */
 
-  insertHTML = function(html) {
+  insertHTML: function(html) {
     var range;
     if ($.browser.msie) {
       range = window.document.selection.createRange();
@@ -1112,65 +932,8 @@ WysiHat.Commands = (function(window) {
     } else {
       return this.execCommand("insertHTML", false, html);
     }
-  };
-  /*
-    WysiHat.Commands#execCommand(command[, ui = false][, value = null]) -> undefined
-    - command (String): Command to execute
-    - ui (Boolean): Boolean flag for showing UI. Currenty this not
-    implemented by any browser. Just use false.
-    - value (String): Value to pass to command
-  
-    A simple delegation method to the documents execCommand method.
-  */
-
-  execCommand = function(command, ui, value) {
-    var handler;
-    handler = this.commands[command];
-    if (handler) {
-      handler.bind(this)(value);
-    } else {
-      try {
-        window.document.execCommand(command, ui, value);
-      } catch (e) {
-        return null;
-      }
-    }
-    return $(document.activeElement).trigger("field:change");
-  };
-  /*
-    WysiHat.Commands#queryCommandState(state) -> Boolean
-    - state (String): bold, italic, underline, etc
-  
-    A delegation method to the document's queryCommandState method.
-  
-    Custom states handlers can be added to the queryCommands hash,
-    which will be checked before calling the native queryCommandState
-    command.
-  
-    editor.queryCommands.set("link", editor.linkSelected);
-  */
-
-  queryCommandState = function(state) {
-    var handler;
-    handler = this.queryCommands[state];
-    if (handler) {
-      return handler();
-    } else {
-      try {
-        return window.document.queryCommandState(state);
-      } catch (e) {
-        return null;
-      }
-    }
-  };
-  /*
-    WysiHat.Commands#getSelectedStyles() -> Hash
-  
-    Fetches the styles (from the styleSelectors hash) from the current
-    selection and returns it as a hash
-  */
-
-  getSelectedStyles = function() {
+  },
+  getSelectedStyles: function() {
     var editor, styles;
     styles = {};
     editor = this;
@@ -1180,55 +943,71 @@ WysiHat.Commands = (function(window) {
       return styles[style.first()] = $(node).css(style.last());
     });
     return styles;
-  };
-  return {
-    boldSelection: boldSelection,
-    boldSelected: boldSelected,
-    underlineSelection: underlineSelection,
-    underlineSelected: underlineSelected,
-    italicSelection: italicSelection,
-    italicSelected: italicSelected,
-    strikethroughSelection: strikethroughSelection,
-    indentSelection: indentSelection,
-    outdentSelection: outdentSelection,
-    toggleIndentation: toggleIndentation,
-    indentSelected: indentSelected,
-    fontSelection: fontSelection,
-    fontSizeSelection: fontSizeSelection,
-    colorSelection: colorSelection,
-    backgroundColorSelection: backgroundColorSelection,
-    alignSelection: alignSelection,
-    alignSelected: alignSelected,
-    linkSelection: linkSelection,
-    unlinkSelection: unlinkSelection,
-    linkSelected: linkSelected,
-    formatblockSelection: formatblockSelection,
-    toggleOrderedList: toggleOrderedList,
-    insertOrderedList: insertOrderedList,
-    orderedListSelected: orderedListSelected,
-    toggleUnorderedList: toggleUnorderedList,
-    insertUnorderedList: insertUnorderedList,
-    unorderedListSelected: unorderedListSelected,
-    insertImage: insertImage,
-    insertHTML: insertHTML,
-    execCommand: execCommand,
-    queryCommandState: queryCommandState,
-    getSelectedStyles: getSelectedStyles,
-    commands: {},
-    queryCommands: {
-      link: linkSelected,
-      numbers: orderedListSelected,
-      bullets: unorderedListSelected
-    },
-    styleSelectors: {
-      fontname: "fontFamily",
-      fontsize: "fontSize",
-      forecolor: "color",
-      hilitecolor: "backgroundColor",
-      backcolor: "backgroundColor"
+  }
+};
+
+WysiHat.States = {
+  queryCommandState: function(state) {
+    var handler;
+    handler = WysiHat.Commands["" + state + "Selected"];
+    if (handler) {
+      return handler();
+    } else {
+      try {
+        return window.document.queryCommandState(state);
+      } catch (e) {
+        return null;
+      }
     }
-  };
-})(window);
+  },
+  indented: function() {
+    var node;
+    node = window.getSelection().getNode();
+    return node.is("blockquote, blockquote *");
+  },
+  aligned: function() {
+    var node;
+    node = window.getSelection().getNode();
+    return $(node).css("textAlign");
+  },
+  linked: function() {
+    var node;
+    node = window.getSelection().getNode();
+    if (node) {
+      return node.get(0).tagName.toUpperCase() === "A";
+    } else {
+      return false;
+    }
+  },
+  /*
+    WysiHat.Commands#orderedListSelected() -> boolean
+  
+    Check if current selection is within an ordered list.
+  */
+
+  orderedList: function() {
+    var element;
+    element = window.getSelection().getNode();
+    if (element) {
+      return element.is("*[contenteditable=\"\"] ol, *[contenteditable=true] ol, *[contenteditable=\"\"] ol *, *[contenteditable=true] ol *");
+    }
+    return false;
+  },
+  /*
+    WysiHat.Commands#unorderedListSelected() -> boolean
+  
+    Check if current selection is within an unordered list.
+  */
+
+  unorderedList: function() {
+    var element;
+    element = window.getSelection().getNode();
+    if (element) {
+      return element.is("*[contenteditable=\"\"] ul, *[contenteditable=true] ul, *[contenteditable=\"\"] ul *, *[contenteditable=true] ul *");
+    }
+    return false;
+  }
+};
 
 
 (function() {
@@ -1723,35 +1502,23 @@ WysiHat.Toolbar = (function() {
       _this = this;
     set = [
       {
-        name: "Bold",
+        name: "bold",
         label: "<strong>Bold</strong>",
         hotkey: 'meta+b ctrl+b'
       }, {
-        name: "Italic",
+        name: "italic",
         label: "<em>Italic</em>",
         hotkey: 'meta+i ctrl+i'
       }, {
-        name: "Underline",
+        name: "underline",
         label: "<u>Underline</u>",
         hotkey: 'meta+u ctrl+u'
       }, {
-        name: "Bullets",
-        label: "<i class='icon-list-ul'></i> Bullets",
-        handler: function(editor) {
-          return editor.toggleUnorderedList();
-        },
-        query: function(editor) {
-          return editor.unorderedListSelected();
-        }
+        name: "unorderedList",
+        label: "<i class='icon-list-ul'></i> Bullets"
       }, {
-        name: "Numbers",
-        label: "<i class='icon-list-ol'></i> Numbers",
-        handler: function(editor) {
-          return editor.toggleOrderedList();
-        },
-        query: function(editor) {
-          return editor.orderedListSelected();
-        }
+        name: "orderedList",
+        label: "<i class='icon-list-ol'></i> Numbers"
       }
     ];
     return $(set).each(function(index, button) {
@@ -1785,16 +1552,12 @@ WysiHat.Toolbar = (function() {
 
 
   Toolbar.prototype.addButton = function(options, handler) {
-    var button, name;
-    if (!options["name"]) {
-      options["name"] = options["label"].toLowerCase();
-    }
-    name = options["name"];
+    var button;
     button = this.createButtonElement(this.element, options);
-    handler = this.buttonHandler(name, options);
+    handler = this.buttonHandler(options["name"], options);
     this.observeButtonClick(button, handler);
     handler = this.buttonStateHandler(name, options);
-    return this.observeStateChanges(button, name, handler);
+    return this.observeStateChanges(button, options["name"], handler);
   };
 
   /*
@@ -1836,15 +1599,9 @@ WysiHat.Toolbar = (function() {
 
 
   Toolbar.prototype.buttonHandler = function(name, options) {
-    if (options.handler) {
-      return options.handler;
-    } else if (options["handler"]) {
-      return options["handler"];
-    } else {
-      return function(editor) {
-        return editor.execCommand(name);
-      };
-    }
+    return function(editor) {
+      return editor.commands[name].call(editor);
+    };
   };
 
   /*
@@ -1884,7 +1641,7 @@ WysiHat.Toolbar = (function() {
       return options["query"];
     } else {
       return function(editor) {
-        return editor.queryCommandState(name);
+        return editor.states.queryCommandState(name);
       };
     }
   };
