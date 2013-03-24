@@ -1,7 +1,7 @@
-WysiHat.Formatting = (->
-  ACCUMULATING_LINE = {}
-  EXPECTING_LIST_ITEM = {}
-  ACCUMULATING_LIST_ITEM = {}
+WysiHat.Formatting =
+  ACCUMULATING_LINE: {}
+  EXPECTING_LIST_ITEM: {}
+  ACCUMULATING_LIST_ITEM: {}
   getBrowserMarkupFrom: (applicationMarkup) ->
     spanify = (element, style) ->
       $(element).replaceWith "<span style=\"" + style + "\">" + element.innerHTML + "</span>"
@@ -27,7 +27,7 @@ WysiHat.Formatting = (->
   getApplicationMarkupFrom: ($element) ->
 
     element = $element.get(0)
-    mode = ACCUMULATING_LINE
+    mode = WysiHat.Formatting.ACCUMULATING_LINE
     result = undefined
     container = undefined
     line = undefined
@@ -50,7 +50,7 @@ WysiHat.Formatting = (->
         else read node.nodeValue  if node.nodeType is 3
         i++
     open = (tagName, node) ->
-      if mode is ACCUMULATING_LINE
+      if mode is WysiHat.Formatting.ACCUMULATING_LINE
 
         # if it's a block-level element and the line buffer is full, flush it
         if isBlockElement(tagName)
@@ -60,7 +60,7 @@ WysiHat.Formatting = (->
           # if it's a ul or ol, switch to expecting-list-item mode
           if isListElement(tagName)
             container = insertList(tagName)
-            mode = EXPECTING_LIST_ITEM
+            mode = WysiHat.Formatting.EXPECTING_LIST_ITEM
         else if isLineBreak(tagName)
 
           # if it's a br, and the previous accumulation was a br,
@@ -76,24 +76,24 @@ WysiHat.Formatting = (->
           flush()  unless previousAccumulation.previousNode
         else
           accumulateInlineElement tagName, node
-      else if mode is EXPECTING_LIST_ITEM
-        mode = ACCUMULATING_LIST_ITEM  if isListItemElement(tagName)
-      else if mode is ACCUMULATING_LIST_ITEM
+      else if mode is WysiHat.Formatting.EXPECTING_LIST_ITEM
+        mode = WysiHat.Formatting.ACCUMULATING_LIST_ITEM  if isListItemElement(tagName)
+      else if mode is WysiHat.Formatting.ACCUMULATING_LIST_ITEM
         if isLineBreak(tagName)
           accumulate node.cloneNode(false)
         else accumulateInlineElement tagName, node  unless isBlockElement(tagName)
     close = (tagName) ->
-      if mode is ACCUMULATING_LINE
+      if mode is WysiHat.Formatting.ACCUMULATING_LINE
         flush()  if isLineElement(tagName)
         lineContainer = lineContainer.parentNode  unless line is lineContainer
-      else if mode is EXPECTING_LIST_ITEM
+      else if mode is WysiHat.Formatting.EXPECTING_LIST_ITEM
         if isListElement(tagName)
           container = result
-          mode = ACCUMULATING_LINE
-      else if mode is ACCUMULATING_LIST_ITEM
+          mode = WysiHat.Formatting.ACCUMULATING_LINE
+      else if mode is WysiHat.Formatting.ACCUMULATING_LIST_ITEM
         if isListItemElement(tagName)
           flush()
-          mode = EXPECTING_LIST_ITEM
+          mode = WysiHat.Formatting.EXPECTING_LIST_ITEM
         lineContainer = lineContainer.parentNode  unless line is lineContainer
     isBlockElement = (tagName) ->
       isLineElement(tagName) or isListElement(tagName)
@@ -118,7 +118,7 @@ WysiHat.Formatting = (->
       accumulate element
       lineContainer = element
     accumulate = (node) ->
-      unless mode is EXPECTING_LIST_ITEM
+      unless mode is WysiHat.Formatting.EXPECTING_LIST_ITEM
         line = lineContainer = createLine()  unless line
         previousAccumulation = node
         lineContainer.appendChild node
@@ -129,9 +129,9 @@ WysiHat.Formatting = (->
         container.appendChild line
         line = lineContainer = null
     createLine = ->
-      if mode is ACCUMULATING_LINE
+      if mode is WysiHat.Formatting.ACCUMULATING_LINE
         $("<div></div>").get 0
-      else $("<li></li>").get 0  if mode is ACCUMULATING_LIST_ITEM
+      else $("<li></li>").get 0  if mode is WysiHat.Formatting.ACCUMULATING_LIST_ITEM
     insertList = (tagName) ->
       list = $("<" + tagName + "></" + tagName + ">").get(0)
       result.appendChild list
@@ -140,4 +140,3 @@ WysiHat.Formatting = (->
     walk element.childNodes
     flush()
     result.innerHTML
-)()

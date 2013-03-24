@@ -28,7 +28,6 @@ module.exports = (grunt) ->
           './js/coffee/wysihat/dom/selection.js'
           './js/coffee/wysihat/dom/bookmark.js'
           './js/coffee/wysihat/editor.js'
-          './js/coffee/wysihat/style_selectors.js'
           './js/coffee/wysihat/features.js'
           './js/coffee/wysihat/commands.js'
           './js/coffee/wysihat/states.js'

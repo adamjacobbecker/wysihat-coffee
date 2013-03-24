@@ -110,12 +110,3 @@ WysiHat.Commands =
       range.select()
     else
       @execCommand "insertHTML", false, html
-
-  getSelectedStyles: ->
-    styles = {}
-    editor = this
-    WysiHat.StyleSelectors.each (style) ->
-      node = editor.selection.getNode()
-      styles[style.first()] = $(node).css(style.last())
-
-    styles

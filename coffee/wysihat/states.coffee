@@ -1,5 +1,4 @@
 WysiHat.States =
-
   queryCommandState: (state) ->
     handler = @states["#{state}"]
     if handler
@@ -41,4 +40,3 @@ WysiHat.States =
     element = window.getSelection().getNode()
     return element.is("*[contenteditable=\"\"] ul, *[contenteditable=true] ul, *[contenteditable=\"\"] ul *, *[contenteditable=true] ul *")  if element
     false
-
