@@ -1465,8 +1465,8 @@ WysiHat.Toolbar = (function() {
   Toolbar.prototype.addButton = function(options) {
     var button;
     button = this.createButtonElement(options);
-    this.observeButtonClick(button, this.buttonHandler(options["name"], options));
-    return this.observeStateChanges(button, this.buttonStateHandler(options["name"], options));
+    this.observeButtonClick(button, this.buttonHandler(options["name"]));
+    return this.observeStateChanges(button, this.buttonStateHandler(options["name"]));
   };
 
   Toolbar.prototype.createButtonElement = function(options) {
@@ -1482,31 +1482,11 @@ WysiHat.Toolbar = (function() {
     return button;
   };
 
-  /*
-    WysiHat.Toolbar#buttonHandler(name, options) -> Function
-    - name (String): Name of button command: 'bold', 'italic'
-    - options (Hash): Options hash that pass from addButton
-  
-    Returns the button handler function to bind to the buttons onclick
-    event. It checks the options for a 'handler' attribute otherwise it
-    defaults to a function that calls execCommand with the button name.
-  */
-
-
-  Toolbar.prototype.buttonHandler = function(name, options) {
+  Toolbar.prototype.buttonHandler = function(name) {
     return function(editor) {
       return editor.commands[name].call(editor);
     };
   };
-
-  /*
-    WysiHat.Toolbar#observeButtonClick(element, handler) -> undefined
-    - element (Element): Button element
-    - handler (Function): Handler function to bind to element
-  
-    Bind handler to elements onclick event.
-  */
-
 
   Toolbar.prototype.observeButtonClick = function(element, handler) {
     var _this = this;
@@ -1517,34 +1497,11 @@ WysiHat.Toolbar = (function() {
     });
   };
 
-  /*
-    WysiHat.Toolbar#buttonStateHandler(name, options) -> Function
-    - name (String): Name of button command: 'bold', 'italic'
-    - options (Hash): Options hash that pass from addButton
-  
-    Returns the button handler function that checks whether the button
-    state is on (true) or off (false). It checks the options for a
-    'query' attribute otherwise it defaults to a function that calls
-    queryCommandState with the button name.
-  */
-
-
   Toolbar.prototype.buttonStateHandler = function(name, options) {
     return function(editor) {
       return editor.states.queryCommandState.call(editor, name);
     };
   };
-
-  /*
-    WysiHat.Toolbar#observeStateChanges(element, name, handler) -> undefined
-    - element (Element): Button element
-    - name (String): Button name
-    - handler (Function): State query function
-  
-    Determines buttons state by calling the query handler function then
-    calls updateButtonState.
-  */
-
 
   Toolbar.prototype.observeStateChanges = function(element, handler) {
     var previousState,
@@ -1559,20 +1516,6 @@ WysiHat.Toolbar = (function() {
       }
     });
   };
-
-  /*
-    WysiHat.Toolbar#updateButtonState(element, name, state) -> undefined
-    - element (Element): Button element
-    - name (String): Button name
-    - state (Boolean): Whether button state is on/off
-  
-    If the state is on, it adds a 'selected' class to the button element.
-    Otherwise it removes the 'selected' class.
-  
-    You can override this method to change the class name or styles
-    applied to buttons when their state changes.
-  */
-
 
   Toolbar.prototype.updateButtonState = function(elem, state) {
     if (state) {
