@@ -125,7 +125,7 @@ WysiHat.Commands =
       selection.selectNode node.closest("ol")
 
     # Toggle list type
-    else selection.selectNode node.closest("ul")  if @states.orderedList()
+    else selection.selectNode node.closest("ul") if @states.unorderedList()
     @execCommand "insertorderedlist", false, null
 
 
@@ -148,7 +148,7 @@ WysiHat.Commands =
       selection.selectNode node.closest("ul")
 
     # Toggle list type
-    else selection.selectNode node.closest("ol")  if @states.unorderedList()
+    else selection.selectNode node.closest("ol")  if @states.orderedList()
     @execCommand "insertunorderedlist", false, null
 
 
@@ -188,7 +188,7 @@ WysiHat.Commands =
 WysiHat.States =
 
   queryCommandState: (state) ->
-    handler = WysiHat.Commands["#{state}Selected"]
+    handler = @states["#{state}"]
     if handler
       handler()
     else

@@ -873,7 +873,7 @@ WysiHat.Commands = {
     if (this.states.orderedList() && !node.is("ol li:last-child, ol li:last-child *")) {
       selection.selectNode(node.closest("ol"));
     } else {
-      if (this.states.orderedList()) {
+      if (this.states.unorderedList()) {
         selection.selectNode(node.closest("ul"));
       }
     }
@@ -899,7 +899,7 @@ WysiHat.Commands = {
     if (this.states.unorderedList() && !node.is("ul li:last-child, ul li:last-child *")) {
       selection.selectNode(node.closest("ul"));
     } else {
-      if (this.states.unorderedList()) {
+      if (this.states.orderedList()) {
         selection.selectNode(node.closest("ol"));
       }
     }
@@ -949,7 +949,7 @@ WysiHat.Commands = {
 WysiHat.States = {
   queryCommandState: function(state) {
     var handler;
-    handler = WysiHat.Commands["" + state + "Selected"];
+    handler = this.states["" + state];
     if (handler) {
       return handler();
     } else {
@@ -1556,7 +1556,7 @@ WysiHat.Toolbar = (function() {
     button = this.createButtonElement(this.element, options);
     handler = this.buttonHandler(options["name"], options);
     this.observeButtonClick(button, handler);
-    handler = this.buttonStateHandler(name, options);
+    handler = this.buttonStateHandler(options["name"], options);
     return this.observeStateChanges(button, options["name"], handler);
   };
 
@@ -1635,15 +1635,9 @@ WysiHat.Toolbar = (function() {
 
 
   Toolbar.prototype.buttonStateHandler = function(name, options) {
-    if (options.query) {
-      return options.query;
-    } else if (options["query"]) {
-      return options["query"];
-    } else {
-      return function(editor) {
-        return editor.states.queryCommandState(name);
-      };
-    }
+    return function(editor) {
+      return editor.states.queryCommandState.call(editor, name);
+    };
   };
 
   /*

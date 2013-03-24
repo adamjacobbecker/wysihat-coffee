@@ -100,7 +100,7 @@ class WysiHat.Toolbar
     button = @createButtonElement(@element, options)
     handler = @buttonHandler(options["name"], options)
     @observeButtonClick button, handler
-    handler = @buttonStateHandler(name, options)
+    handler = @buttonStateHandler(options["name"], options)
     @observeStateChanges button, options["name"], handler
 
   ###
@@ -165,13 +165,8 @@ class WysiHat.Toolbar
   queryCommandState with the button name.
   ###
   buttonStateHandler: (name, options) ->
-    if options.query
-      options.query
-    else if options["query"]
-      options["query"]
-    else
-      (editor) ->
-        editor.states.queryCommandState name
+    (editor) ->
+      editor.states.queryCommandState.call(editor, name)
 
   ###
   WysiHat.Toolbar#observeStateChanges(element, name, handler) -> undefined
