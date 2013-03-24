@@ -3,13 +3,8 @@ var WysiHat;
 WysiHat = {};
 
 $.fn.wysihat = function() {
-  var result;
-  result = void 0;
   return this.each(function() {
-    var $editor;
-    $editor = WysiHat.Editor.attach($(this));
-    $editor.toolbar = new WysiHat.Toolbar($editor);
-    return $(this).data('wysihat', result);
+    return $(this).data('wysihat', new WysiHat.Editor($(this)));
   });
 };
 
@@ -629,31 +624,15 @@ if (jQuery.browser.msie) {
   })());
 }
 
-/*
-section: wysihat
-WysiHat.Editor
-*/
 
-/*
-section: wysihat
-WysiHat.Editor.attach(textarea) -> undefined
-- $textarea (jQuery): a jQuery wrapped textarea that you want to convert
-to a rich-text field.
+WysiHat.Editor = (function() {
 
-Creates a new editor for the textarea.
-*/
-
-WysiHat.Editor = {
-  attach: function($textarea) {
-    var $editArea, id;
-    id = $textarea.attr("id") + "_editor";
-    $editArea = $textarea.siblings("#" + id).first();
-    if ($editArea.length === 0) {
-      $editArea = $("<div id=\"" + id + "\" class=\"editor\" contentEditable=\"true\"></div>");
-      $textarea.before($editArea);
-    }
-    $editArea.html(WysiHat.Formatting.getBrowserMarkupFrom($textarea.val()));
-    jQuery.extend($editArea, {
+  function Editor($textarea) {
+    this.$el = $("<div id=\"" + $textarea.attr("id") + "_editor" + "\" class=\"editor\" contentEditable=\"true\"></div>");
+    $textarea.before(this.$el);
+    this.$el.html(WysiHat.Formatting.getBrowserMarkupFrom($textarea.val()));
+    this.toolbar = new WysiHat.Toolbar(this);
+    jQuery.extend(this.$el, {
       commands: WysiHat.Commands,
       states: WysiHat.States,
       styleSelectors: WysiHat.StyleSelectors,
@@ -663,9 +642,11 @@ WysiHat.Editor = {
     $textarea.closest("form").submit(function() {
       return $textarea.val(WysiHat.Formatting.getApplicationMarkupFrom($editArea));
     });
-    return $editArea;
   }
-};
+
+  return Editor;
+
+})();
 
 
 WysiHat.BrowserFeatures = (function() {
@@ -1438,64 +1419,19 @@ WysiHat.Formatting = (function() {
   };
 })();
 
-/*
-section: wysihat
-class WysiHat.Toolbar
-*/
 
 WysiHat.Toolbar = (function() {
-  /*
-    new WysiHat.Toolbar(ed)
-    - ed (WysiHat.Editor): the editor object that you want to attach to.
-  
-    This was renamed from 'editor' in the original wysihat code, since I
-    had to add a class level 'editor' object, causing a conflict with the
-    names.
-  
-    Creates a toolbar element above the editor. The WysiHat.Toolbar object
-    has many helper methods to easily add buttons to the toolbar.
-  
-    This toolbar class is not required for the Editor object to function.
-    It is merely a set of helper methods to get you started and to build
-    on top of. If you are going to use this class in your application,
-    it is highly recommended that you subclass it and override methods
-    to add custom functionality.
-  */
 
-  function Toolbar(ed) {
-    this.editor = ed;
-    this.element = this.createToolbarElement();
+  function Toolbar(editor) {
+    this.editor = editor;
+    this.createToolbarElement();
     this.addButtonSet();
   }
 
-  /*
-    WysiHat.Toolbar#createToolbarElement() -> Element
-  
-    Creates a toolbar container element and inserts it right above the
-    original textarea element. The element is a div with the class
-    'editor_toolbar'.
-  
-    You can override this method to customize the element attributes and
-    insert position. Be sure to return the element after it has been
-    inserted.
-  */
-
-
   Toolbar.prototype.createToolbarElement = function() {
-    var toolbar;
-    toolbar = $("<div class=\"editor_toolbar\"></div>");
-    this.editor.before(toolbar);
-    return toolbar;
+    this.$el = $("<div class=\"editor_toolbar\"></div>");
+    return this.editor.$el.before(this.$el);
   };
-
-  /*
-    WysiHat.Toolbar#addButtonSet(set) -> undefined
-    - set (Array): The set array contains nested arrays that hold the
-    button options, and handler.
-  
-    Adds a button set to the toolbar.
-  */
-
 
   Toolbar.prototype.addButtonSet = function() {
     var set,
@@ -1521,65 +1457,24 @@ WysiHat.Toolbar = (function() {
         label: "<i class='icon-list-ol'></i> Numbers"
       }
     ];
-    return $(set).each(function(index, button) {
-      return _this.addButton(button);
+    return $(set).each(function(_, options) {
+      return _this.addButton(options);
     });
   };
 
-  /*
-    WysiHat.Toolbar#addButton(options[, handler]) -> undefined
-    - options (Hash): Required options hash
-    - handler (Function): Function to bind to the button
-  
-    The options hash accepts two required keys, name and label. The label
-    value is used as the link's inner text. The name value is set to the
-    link's class and is used to check the button state. However the name
-    may be omitted if the name and label are the same. In that case, the
-    label will be down cased to make the name value. So a "Bold" label
-    will default to "bold" name.
-  
-    The second optional handler argument will be used if no handler
-    function is supplied in the options hash.
-  
-    toolbar.addButton({
-    name: 'bold', label: "Bold" }, function(editor) {
-    editor.boldSelection();
-    });
-  
-    Would create a link,
-    "<a href='#' class='button bold'><span>Bold</span></a>"
-  */
-
-
-  Toolbar.prototype.addButton = function(options, handler) {
+  Toolbar.prototype.addButton = function(options) {
     var button;
-    button = this.createButtonElement(this.element, options);
-    handler = this.buttonHandler(options["name"], options);
-    this.observeButtonClick(button, handler);
-    handler = this.buttonStateHandler(options["name"], options);
-    return this.observeStateChanges(button, options["name"], handler);
+    button = this.createButtonElement(options);
+    this.observeButtonClick(button, this.buttonHandler(options["name"], options));
+    return this.observeStateChanges(button, this.buttonStateHandler(options["name"], options));
   };
 
-  /*
-    WysiHat.Toolbar#createButtonElement(toolbar, options) -> Element
-    - toolbar (Element): Toolbar element created by createToolbarElement
-    - options (Hash): Options hash that pass from addButton
-  
-    Creates individual button elements and inserts them into the toolbar
-    container. The default elements are 'a' tags with a 'button' class.
-  
-    You can override this method to customize the element attributes and
-    insert positions. Be sure to return the element after it has been
-    inserted.
-  */
-
-
-  Toolbar.prototype.createButtonElement = function(toolbar, options) {
+  Toolbar.prototype.createButtonElement = function(options) {
     var button;
     button = $("<a class=\"btn btn-mini\" href=\"#\">" + options["label"] + "</a>");
-    toolbar.append(button);
+    this.$el.append(button);
     if (options["hotkey"]) {
-      this.editor.bind('keydown', options["hotkey"], function(e) {
+      this.editor.$el.bind('keydown', options["hotkey"], function(e) {
         button.click();
         return e.preventDefault();
       });
@@ -1616,7 +1511,7 @@ WysiHat.Toolbar = (function() {
   Toolbar.prototype.observeButtonClick = function(element, handler) {
     var _this = this;
     return $(element).click(function() {
-      handler(_this.editor);
+      handler(_this.editor.$el);
       $(document.activeElement).trigger("selection:change");
       return false;
     });
@@ -1651,16 +1546,16 @@ WysiHat.Toolbar = (function() {
   */
 
 
-  Toolbar.prototype.observeStateChanges = function(element, name, handler) {
+  Toolbar.prototype.observeStateChanges = function(element, handler) {
     var previousState,
       _this = this;
     previousState = void 0;
-    return this.editor.bind("selection:change", function() {
+    return this.editor.$el.bind("selection:change", function() {
       var state;
-      state = handler(_this.editor);
+      state = handler(_this.editor.$el);
       if (state !== previousState) {
         previousState = state;
-        return _this.updateButtonState(element, name, state);
+        return _this.updateButtonState(element, state);
       }
     });
   };
@@ -1679,7 +1574,7 @@ WysiHat.Toolbar = (function() {
   */
 
 
-  Toolbar.prototype.updateButtonState = function(elem, name, state) {
+  Toolbar.prototype.updateButtonState = function(elem, state) {
     if (state) {
       return $(elem).addClass("active");
     } else {

@@ -1,54 +1,13 @@
-###
-section: wysihat
 class WysiHat.Toolbar
-###
-class WysiHat.Toolbar
-
-  ###
-  new WysiHat.Toolbar(ed)
-  - ed (WysiHat.Editor): the editor object that you want to attach to.
-
-  This was renamed from 'editor' in the original wysihat code, since I
-  had to add a class level 'editor' object, causing a conflict with the
-  names.
-
-  Creates a toolbar element above the editor. The WysiHat.Toolbar object
-  has many helper methods to easily add buttons to the toolbar.
-
-  This toolbar class is not required for the Editor object to function.
-  It is merely a set of helper methods to get you started and to build
-  on top of. If you are going to use this class in your application,
-  it is highly recommended that you subclass it and override methods
-  to add custom functionality.
-  ###
-  constructor: (ed) ->
-    @editor = ed
-    @element = @createToolbarElement()
+  constructor: (editor) ->
+    @editor = editor
+    @createToolbarElement()
     @addButtonSet()
 
-  ###
-  WysiHat.Toolbar#createToolbarElement() -> Element
-
-  Creates a toolbar container element and inserts it right above the
-  original textarea element. The element is a div with the class
-  'editor_toolbar'.
-
-  You can override this method to customize the element attributes and
-  insert position. Be sure to return the element after it has been
-  inserted.
-  ###
   createToolbarElement: ->
-    toolbar = $("<div class=\"editor_toolbar\"></div>")
-    @editor.before toolbar
-    toolbar
+    @$el = $("<div class=\"editor_toolbar\"></div>")
+    @editor.$el.before @$el
 
-  ###
-  WysiHat.Toolbar#addButtonSet(set) -> undefined
-  - set (Array): The set array contains nested arrays that hold the
-  button options, and handler.
-
-  Adds a button set to the toolbar.
-  ###
   addButtonSet: ->
     set = [
       name: "bold"
@@ -70,56 +29,19 @@ class WysiHat.Toolbar
       label: "<i class='icon-list-ol'></i> Numbers"
     ]
 
-    $(set).each (index, button) =>
-      @addButton button
+    $(set).each (_, options) =>
+      @addButton options
 
-  ###
-  WysiHat.Toolbar#addButton(options[, handler]) -> undefined
-  - options (Hash): Required options hash
-  - handler (Function): Function to bind to the button
+  addButton: (options) ->
+    button = @createButtonElement(options)
+    @observeButtonClick button, @buttonHandler(options["name"], options)
+    @observeStateChanges button, @buttonStateHandler(options["name"], options)
 
-  The options hash accepts two required keys, name and label. The label
-  value is used as the link's inner text. The name value is set to the
-  link's class and is used to check the button state. However the name
-  may be omitted if the name and label are the same. In that case, the
-  label will be down cased to make the name value. So a "Bold" label
-  will default to "bold" name.
-
-  The second optional handler argument will be used if no handler
-  function is supplied in the options hash.
-
-  toolbar.addButton({
-  name: 'bold', label: "Bold" }, function(editor) {
-  editor.boldSelection();
-  });
-
-  Would create a link,
-  "<a href='#' class='button bold'><span>Bold</span></a>"
-  ###
-  addButton: (options, handler) ->
-    button = @createButtonElement(@element, options)
-    handler = @buttonHandler(options["name"], options)
-    @observeButtonClick button, handler
-    handler = @buttonStateHandler(options["name"], options)
-    @observeStateChanges button, options["name"], handler
-
-  ###
-  WysiHat.Toolbar#createButtonElement(toolbar, options) -> Element
-  - toolbar (Element): Toolbar element created by createToolbarElement
-  - options (Hash): Options hash that pass from addButton
-
-  Creates individual button elements and inserts them into the toolbar
-  container. The default elements are 'a' tags with a 'button' class.
-
-  You can override this method to customize the element attributes and
-  insert positions. Be sure to return the element after it has been
-  inserted.
-  ###
-  createButtonElement: (toolbar, options) ->
+  createButtonElement: (options) ->
     button = $("<a class=\"btn btn-mini\" href=\"#\">" + options["label"] + "</a>")
-    toolbar.append button
+    @$el.append button
 
-    if options["hotkey"] then @editor.bind 'keydown', options["hotkey"], (e) ->
+    if options["hotkey"] then @editor.$el.bind 'keydown', options["hotkey"], (e) ->
       button.click()
       e.preventDefault()
 
@@ -147,7 +69,7 @@ class WysiHat.Toolbar
   ###
   observeButtonClick: (element, handler) ->
     $(element).click =>
-      handler @editor
+      handler @editor.$el
 
       #event.stop();
       $(document.activeElement).trigger "selection:change"
@@ -177,13 +99,13 @@ class WysiHat.Toolbar
   Determines buttons state by calling the query handler function then
   calls updateButtonState.
   ###
-  observeStateChanges: (element, name, handler) ->
+  observeStateChanges: (element, handler) ->
     previousState = undefined
-    @editor.bind "selection:change", =>
-      state = handler(@editor)
+    @editor.$el.bind "selection:change", =>
+      state = handler(@editor.$el)
       unless state is previousState
         previousState = state
-        @updateButtonState element, name, state
+        @updateButtonState element, state
 
 
   ###
@@ -198,7 +120,7 @@ class WysiHat.Toolbar
   You can override this method to change the class name or styles
   applied to buttons when their state changes.
   ###
-  updateButtonState: (elem, name, state) ->
+  updateButtonState: (elem, state) ->
     if state
       $(elem).addClass "active"
     else
