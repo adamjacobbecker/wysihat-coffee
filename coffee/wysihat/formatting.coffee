@@ -4,7 +4,7 @@ WysiHat.Formatting = (->
   ACCUMULATING_LIST_ITEM = {}
   getBrowserMarkupFrom: (applicationMarkup) ->
     spanify = (element, style) ->
-      $(element).replaceWith "<span style=\"" + style + "\" class=\"Apple-style-span\">" + element.innerHTML + "</span>"
+      $(element).replaceWith "<span style=\"" + style + "\">" + element.innerHTML + "</span>"
     convertStrongsToSpans = ->
       container.find("strong").each (index, element) ->
         spanify element, "font-weight: bold"

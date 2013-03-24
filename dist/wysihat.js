@@ -629,24 +629,32 @@ WysiHat.Editor = (function() {
 
   function Editor($textarea) {
     this.$el = $("<div id=\"" + $textarea.attr("id") + "_editor" + "\" class=\"editor\" contentEditable=\"true\"></div>");
-    $textarea.before(this.$el);
     this.$el.html(WysiHat.Formatting.getBrowserMarkupFrom($textarea.val()));
-    this.toolbar = new WysiHat.Toolbar(this);
-    jQuery.extend(this.$el, {
-      commands: WysiHat.Commands,
-      states: WysiHat.States,
-      styleSelectors: WysiHat.StyleSelectors,
-      execCommand: WysiHat.ExecCommand
-    });
+    $textarea.before(this.$el);
     $textarea.hide();
     $textarea.closest("form").submit(function() {
-      return $textarea.val(WysiHat.Formatting.getApplicationMarkupFrom($editArea));
+      return $textarea.val(WysiHat.Formatting.getApplicationMarkupFrom(this.$el));
+    });
+    this.toolbar = new WysiHat.Toolbar(this);
+    $.extend(this.$el, {
+      commands: WysiHat.Commands,
+      states: WysiHat.States,
+      execCommand: WysiHat.ExecCommand
     });
   }
 
   return Editor;
 
 })();
+
+
+WysiHat.StyleSelectors = {
+  fontname: "fontFamily",
+  fontsize: "fontSize",
+  forecolor: "color",
+  hilitecolor: "backgroundColor",
+  backcolor: "backgroundColor"
+};
 
 
 WysiHat.BrowserFeatures = (function() {
@@ -716,30 +724,6 @@ WysiHat.BrowserFeatures = (function() {
   return features;
 })();
 
-/*
-section: wysihat
-mixin WysiHat.Commands
-
-Methods will be mixed into the editor element. Most of these
-methods will be used to bind to button clicks or key presses.
-
-var editor = WysiHat.Editor.attach(textarea);
-$('#bold_button').click(function(event) {
-editor.boldSelection();
-return false;
-});
-
-In this example, it is important to stop the click event so you don't
-lose your current selection.
-*/
-
-WysiHat.StyleSelectors = {
-  fontname: "fontFamily",
-  fontsize: "fontSize",
-  forecolor: "color",
-  hilitecolor: "backgroundColor",
-  backcolor: "backgroundColor"
-};
 
 WysiHat.ExecCommand = function(command, ui, value) {
   try {
@@ -823,28 +807,9 @@ WysiHat.Commands = {
     }
     return this.execCommand("unlink", false, null);
   },
-  /*
-    WysiHat.Commands#formatblockSelection(element) -> undefined
-    - element (String): the type of element you want to wrap your selection
-    with (like 'h1' or 'p').
-  
-    Wraps the current selection in a header or paragraph.
-  */
-
   formatblock: function(element) {
     return this.execCommand("formatblock", false, element);
   },
-  /*
-    WysiHat.Commands#toggleOrderedList() -> undefined
-  
-    Formats current selection as an ordered list. If the selection is empty
-    a new list is inserted.
-  
-    If the selection is already a ordered list, the entire list
-    will be toggled. However, toggling the last item of the list
-    will only affect that item, not the entire list.
-  */
-
   orderedList: function() {
     var node, selection;
     selection = void 0;
@@ -860,17 +825,6 @@ WysiHat.Commands = {
     }
     return this.execCommand("insertorderedlist", false, null);
   },
-  /*
-    WysiHat.Commands#toggleUnorderedList() -> undefined
-  
-    Formats current selection as an unordered list. If the selection is empty
-    a new list is inserted.
-  
-    If the selection is already a unordered list, the entire list
-    will be toggled. However, toggling the last item of the list
-    will only affect that item, not the entire list.
-  */
-
   unorderedList: function() {
     var node, selection;
     selection = void 0;
@@ -886,23 +840,9 @@ WysiHat.Commands = {
     }
     return this.execCommand("insertunorderedlist", false, null);
   },
-  /*
-    WysiHat.Commands#insertImage(url) -> undefined
-  
-    - url (String): value for src
-    Insert an image at the insertion point with the given url.
-  */
-
   insertImage: function(url) {
     return this.execCommand("insertImage", false, url);
   },
-  /*
-    WysiHat.Commands#insertHTML(html) -> undefined
-  
-    - html (String): HTML or plain text
-    Insert HTML at the insertion point.
-  */
-
   insertHTML: function(html) {
     var range;
     if ($.browser.msie) {
@@ -918,7 +858,7 @@ WysiHat.Commands = {
     var editor, styles;
     styles = {};
     editor = this;
-    editor.styleSelectors.each(function(style) {
+    WysiHat.StyleSelectors.each(function(style) {
       var node;
       node = editor.selection.getNode();
       return styles[style.first()] = $(node).css(style.last());
@@ -926,6 +866,7 @@ WysiHat.Commands = {
     return styles;
   }
 };
+
 
 WysiHat.States = {
   queryCommandState: function(state) {
@@ -1215,7 +1156,7 @@ WysiHat.Formatting = (function() {
     getBrowserMarkupFrom: function(applicationMarkup) {
       var container, convertDivsToParagraphs, convertEmsToSpans, convertStrongsToSpans, spanify;
       spanify = function(element, style) {
-        return $(element).replaceWith("<span style=\"" + style + "\" class=\"Apple-style-span\">" + element.innerHTML + "</span>");
+        return $(element).replaceWith("<span style=\"" + style + "\">" + element.innerHTML + "</span>");
       };
       convertStrongsToSpans = function() {
         return container.find("strong").each(function(index, element) {
