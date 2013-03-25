@@ -36,7 +36,9 @@ class WysiHat.Toolbar
         $btn = $(e.target).closest(".btn")
 
         destroyPopover = ->
-          $("#fake-selection").contents()?.unwrap()
+          $(document).off ".popover"
+          WysiHat.Helpers.Selection.restore(range)
+          highlightApplier.undoToSelection()
           $btn.popover 'destroy'
 
         return destroyPopover() if $btn.data('popover')
@@ -63,16 +65,15 @@ class WysiHat.Toolbar
 
         $popover = $btn.data('popover').$tip
         $popover.find(":input").focus().val($popover.find(":input").val()) # hack to focus to end of input
-        $(document).on "click", (e) ->
+        $(document).on "click.popover", (e) ->
           destroyPopover() if $(e.target).closest(".popover").length is 0
-        $(document).on "keydown", "esc", (e) ->
+        $(document).on "keydown.popover", "esc", (e) ->
           destroyPopover()
 
         addLink = ->
-          WysiHat.Helpers.Selection.restore(range)
-          editor.commands.link.call(editor, $popover.find(":input").val())
-          highlightApplier.undoToSelection()
-          $btn.popover 'destroy'
+          href = $popover.find(":input").val()
+          destroyPopover()
+          editor.commands.link.call(editor, href)
 
         $popover.on "click", ".btn", addLink
         $popover.on "keydown", ":input", (e) ->

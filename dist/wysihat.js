@@ -1382,10 +1382,9 @@ WysiHat.Toolbar = (function() {
           }
           $btn = $(e.target).closest(".btn");
           destroyPopover = function() {
-            var _ref;
-            if ((_ref = $("#fake-selection").contents()) != null) {
-              _ref.unwrap();
-            }
+            $(document).off(".popover");
+            WysiHat.Helpers.Selection.restore(range);
+            highlightApplier.undoToSelection();
             return $btn.popover('destroy');
           };
           if ($btn.data('popover')) {
@@ -1409,19 +1408,19 @@ WysiHat.Toolbar = (function() {
           $btn.popover('show');
           $popover = $btn.data('popover').$tip;
           $popover.find(":input").focus().val($popover.find(":input").val());
-          $(document).on("click", function(e) {
+          $(document).on("click.popover", function(e) {
             if ($(e.target).closest(".popover").length === 0) {
               return destroyPopover();
             }
           });
-          $(document).on("keydown", "esc", function(e) {
+          $(document).on("keydown.popover", "esc", function(e) {
             return destroyPopover();
           });
           addLink = function() {
-            WysiHat.Helpers.Selection.restore(range);
-            editor.commands.link.call(editor, $popover.find(":input").val());
-            highlightApplier.undoToSelection();
-            return $btn.popover('destroy');
+            var href;
+            href = $popover.find(":input").val();
+            destroyPopover();
+            return editor.commands.link.call(editor, href);
           };
           $popover.on("click", ".btn", addLink);
           return $popover.on("keydown", ":input", function(e) {
