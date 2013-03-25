@@ -27,6 +27,51 @@ class WysiHat.Toolbar
     ,
       name: "orderedList"
       label: "<i class='icon-list-ol'></i> Numbers"
+    ,
+      name: "linked"
+      label: "<i class='icon-link'></i> Link"
+      handler: (editor, e) ->
+        return editor.commands.unlink.call(editor) if editor.states.linked()
+
+        $btn = $(e.target).closest(".btn")
+
+        return $btn.popover 'destroy' if $btn.data('popover')
+
+        $btn.popover
+          placement: 'bottom'
+          template: '<div class="popover"><div class="arrow"></div><div class="popover-content"></div></div>'
+
+          content: """
+            <input type="text" value="http://" style="margin-bottom: 0px;" class="span2" />
+            <a class="btn btn-primary">Add</a>
+          """
+          html: true
+          trigger: 'manual'
+
+        range = WysiHat.Helpers.Selection.save()
+        selection = window.getSelection()
+        return if selection.rangeCount == 0
+        range = selection.getRangeAt(0)
+        range.surroundContents $("<span id='fake-selection'></span>")[0]
+
+        $btn.popover 'show'
+
+        $popover = $btn.data('popover').$tip
+        $popover.find(":input").focus().val($popover.find(":input").val()) # hack to focus to end of input
+
+        addLink = (e) ->
+          # console.log $("#fake-selection").children().first()
+          WysiHat.Helpers.Selection.restore(range)
+          editor.commands.link.call(editor, $popover.find(":input").val())
+          $("#fake-selection").contents().unwrap()
+          $btn.popover 'destroy'
+
+        $popover.on "click", ".btn", addLink
+        $popover.on "keydown", ":input", (e) ->
+          if e.keyCode is 13
+            e.preventDefault()
+            addLink(e)
+
     ]
 
     $(set).each (_, options) =>
@@ -34,8 +79,8 @@ class WysiHat.Toolbar
 
   addButton: (options) ->
     button = @createButtonElement(options)
-    @observeButtonClick button, @buttonHandler(options["name"])
-    @observeStateChanges button, @buttonStateHandler(options["name"])
+    @observeButtonClick button, options["handler"] || @buttonHandler(options["name"])
+    @observeStateChanges button, options["observer"] || @buttonStateHandler(options["name"])
 
   createButtonElement: (options) ->
     button = $("<a class=\"btn btn-mini\" href=\"#\">" + options["label"] + "</a>")
@@ -52,8 +97,8 @@ class WysiHat.Toolbar
       editor.commands[name].call(editor)
 
   observeButtonClick: (element, handler) ->
-    $(element).click =>
-      handler @editor.$el
+    $(element).click (e) =>
+      handler @editor.$el, e
 
       #event.stop();
       $(document.activeElement).trigger "selection:change"

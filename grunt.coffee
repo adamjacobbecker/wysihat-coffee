@@ -37,6 +37,7 @@ module.exports = (grunt) ->
           './js/coffee/wysihat/events/selection_change.js'
           './js/coffee/wysihat/formatting.js'
           './js/coffee/wysihat/toolbar.js'
+          './js/coffee/wysihat/helpers/selection.js'
           './js/coffee/helper.js'
         ]
         dest: './dist/wysihat.js'

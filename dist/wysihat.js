@@ -1,6 +1,8 @@
 var WysiHat;
 
-WysiHat = {};
+WysiHat = {
+  Helpers: {}
+};
 
 $.fn.wysihat = function() {
   return this.each(function() {
@@ -796,7 +798,7 @@ WysiHat.Commands = {
   unlink: function() {
     var node;
     node = window.getSelection().getNode();
-    if (this.linkSelected()) {
+    if (this.states.linked()) {
       window.getSelection().selectNode(node);
     }
     return this.execCommand("unlink", false, null);
@@ -1371,6 +1373,49 @@ WysiHat.Toolbar = (function() {
       }, {
         name: "orderedList",
         label: "<i class='icon-list-ol'></i> Numbers"
+      }, {
+        name: "linked",
+        label: "<i class='icon-link'></i> Link",
+        handler: function(editor, e) {
+          var $btn, $popover, addLink, range, selection;
+          if (editor.states.linked()) {
+            return editor.commands.unlink.call(editor);
+          }
+          $btn = $(e.target).closest(".btn");
+          if ($btn.data('popover')) {
+            return $btn.popover('destroy');
+          }
+          $btn.popover({
+            placement: 'bottom',
+            template: '<div class="popover"><div class="arrow"></div><div class="popover-content"></div></div>',
+            content: "<input type=\"text\" value=\"http://\" style=\"margin-bottom: 0px;\" class=\"span2\" />\n<a class=\"btn btn-primary\">Add</a>",
+            html: true,
+            trigger: 'manual'
+          });
+          range = WysiHat.Helpers.Selection.save();
+          selection = window.getSelection();
+          if (selection.rangeCount === 0) {
+            return;
+          }
+          range = selection.getRangeAt(0);
+          range.surroundContents($("<span id='fake-selection'></span>")[0]);
+          $btn.popover('show');
+          $popover = $btn.data('popover').$tip;
+          $popover.find(":input").focus().val($popover.find(":input").val());
+          addLink = function(e) {
+            WysiHat.Helpers.Selection.restore(range);
+            editor.commands.link.call(editor, $popover.find(":input").val());
+            $("#fake-selection").contents().unwrap();
+            return $btn.popover('destroy');
+          };
+          $popover.on("click", ".btn", addLink);
+          return $popover.on("keydown", ":input", function(e) {
+            if (e.keyCode === 13) {
+              e.preventDefault();
+              return addLink(e);
+            }
+          });
+        }
       }
     ];
     return $(set).each(function(_, options) {
@@ -1381,8 +1426,8 @@ WysiHat.Toolbar = (function() {
   Toolbar.prototype.addButton = function(options) {
     var button;
     button = this.createButtonElement(options);
-    this.observeButtonClick(button, this.buttonHandler(options["name"]));
-    return this.observeStateChanges(button, this.buttonStateHandler(options["name"]));
+    this.observeButtonClick(button, options["handler"] || this.buttonHandler(options["name"]));
+    return this.observeStateChanges(button, options["observer"] || this.buttonStateHandler(options["name"]));
   };
 
   Toolbar.prototype.createButtonElement = function(options) {
@@ -1406,8 +1451,8 @@ WysiHat.Toolbar = (function() {
 
   Toolbar.prototype.observeButtonClick = function(element, handler) {
     var _this = this;
-    return $(element).click(function() {
-      handler(_this.editor.$el);
+    return $(element).click(function(e) {
+      handler(_this.editor.$el, e);
       $(document.activeElement).trigger("selection:change");
       return false;
     });
@@ -1442,5 +1487,44 @@ WysiHat.Toolbar = (function() {
   };
 
   return Toolbar;
+
+})();
+
+
+WysiHat.Helpers.Selection = (function() {
+
+  function Selection() {}
+
+  Selection.save = function() {
+    var sel;
+    if (window.getSelection) {
+      sel = window.getSelection();
+      if (sel.getRangeAt && sel.rangeCount) {
+        return sel.getRangeAt(0);
+      }
+    } else {
+      if (document.selection && document.selection.createRange) {
+        return document.selection.createRange();
+      }
+    }
+    return null;
+  };
+
+  Selection.restore = function(range) {
+    var sel;
+    if (range) {
+      if (window.getSelection) {
+        sel = window.getSelection();
+        sel.removeAllRanges();
+        return sel.addRange(range);
+      } else {
+        if (document.selection && range.select) {
+          return range.select();
+        }
+      }
+    }
+  };
+
+  return Selection;
 
 })();

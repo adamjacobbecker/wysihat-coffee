@@ -1,4 +1,4 @@
-WysiHat = {}
+WysiHat = { Helpers: {} }
 
 # Set wysihat as a jQuery plugin
 $.fn.wysihat = ->

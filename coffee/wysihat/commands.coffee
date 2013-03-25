@@ -69,7 +69,7 @@ WysiHat.Commands =
 
   unlink: ->
     node = window.getSelection().getNode()
-    window.getSelection().selectNode node if @linkSelected()
+    window.getSelection().selectNode node if @states.linked()
     @execCommand "unlink", false, null
 
   formatblock: (element) ->

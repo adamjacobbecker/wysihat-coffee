@@ -6,6 +6,7 @@
   <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
   <script src="http://code.jquery.com/jquery-migrate-1.1.1.min.js"></script>
   <script src="deps/jquery.hotkeys.js"></script>
+  <script src="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/js/bootstrap.min.js"></script>
   <script src="dist/wysihat.js"></script>
 
   <script>
@@ -36,13 +37,25 @@
       border: 1px solid #ccc;
       outline: none;
     }
+
+    #content_editor a {
+      text-decoration: none;
+    }
+
+    #fake-selection {
+      background-color: #b3d4fc;
+    }
+
+    ::selection {
+      background-color: #b3d4fc;
+    }
   </style>
 </head>
 <body>
   <form action="#" method="post" style="width: 500px;">
-    <textarea id="content">Here is some <b>content</b>.</textarea>
+    <textarea id="content">Here is some <b>content</b>. And a <a href="http://www.google.com">link</a>.</textarea>
     <div>
-      <button>Submit</button> and check your javascript console.
+      <button class="btn">Submit</button> and check your javascript console.
     </div>
   </form>
 </body>
