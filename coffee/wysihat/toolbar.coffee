@@ -35,7 +35,11 @@ class WysiHat.Toolbar
 
         $btn = $(e.target).closest(".btn")
 
-        return $btn.popover 'destroy' if $btn.data('popover')
+        destroyPopover = ->
+          $("#fake-selection").contents()?.unwrap()
+          $btn.popover 'destroy'
+
+        return destroyPopover() if $btn.data('popover')
 
         $btn.popover
           placement: 'bottom'
@@ -52,15 +56,18 @@ class WysiHat.Toolbar
         selection = window.getSelection()
         return if selection.rangeCount == 0
         range = selection.getRangeAt(0)
-        range.surroundContents $("<span id='fake-selection'></span>")[0]
+        range.wrap $("<span id='fake-selection'></span>")
 
         $btn.popover 'show'
 
         $popover = $btn.data('popover').$tip
         $popover.find(":input").focus().val($popover.find(":input").val()) # hack to focus to end of input
+        $(document).on "click", (e) ->
+          destroyPopover() if $(e.target).closest(".popover").length is 0
+        $(document).on "keydown", "esc", (e) ->
+          destroyPopover()
 
-        addLink = (e) ->
-          # console.log $("#fake-selection").children().first()
+        addLink = ->
           WysiHat.Helpers.Selection.restore(range)
           editor.commands.link.call(editor, $popover.find(":input").val())
           $("#fake-selection").contents().unwrap()
@@ -68,10 +75,11 @@ class WysiHat.Toolbar
 
         $popover.on "click", ".btn", addLink
         $popover.on "keydown", ":input", (e) ->
-          if e.keyCode is 13
-            e.preventDefault()
-            addLink(e)
-
+          switch e.keyCode
+            when 27 then destroyPopover()
+            when 13
+              e.preventDefault()
+              addLink()
     ]
 
     $(set).each (_, options) =>

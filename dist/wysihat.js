@@ -1380,13 +1380,20 @@ WysiHat.Toolbar = (function() {
         name: "linked",
         label: "<i class='icon-link'></i> Link",
         handler: function(editor, e) {
-          var $btn, $popover, addLink, range, selection;
+          var $btn, $popover, addLink, destroyPopover, range, selection;
           if (editor.states.linked()) {
             return editor.commands.unlink.call(editor);
           }
           $btn = $(e.target).closest(".btn");
-          if ($btn.data('popover')) {
+          destroyPopover = function() {
+            var _ref;
+            if ((_ref = $("#fake-selection").contents()) != null) {
+              _ref.unwrap();
+            }
             return $btn.popover('destroy');
+          };
+          if ($btn.data('popover')) {
+            return destroyPopover();
           }
           $btn.popover({
             placement: 'bottom',
@@ -1401,11 +1408,19 @@ WysiHat.Toolbar = (function() {
             return;
           }
           range = selection.getRangeAt(0);
-          range.surroundContents($("<span id='fake-selection'></span>")[0]);
+          range.wrap($("<span id='fake-selection'></span>"));
           $btn.popover('show');
           $popover = $btn.data('popover').$tip;
           $popover.find(":input").focus().val($popover.find(":input").val());
-          addLink = function(e) {
+          $(document).on("click", function(e) {
+            if ($(e.target).closest(".popover").length === 0) {
+              return destroyPopover();
+            }
+          });
+          $(document).on("keydown", "esc", function(e) {
+            return destroyPopover();
+          });
+          addLink = function() {
             WysiHat.Helpers.Selection.restore(range);
             editor.commands.link.call(editor, $popover.find(":input").val());
             $("#fake-selection").contents().unwrap();
@@ -1413,9 +1428,12 @@ WysiHat.Toolbar = (function() {
           };
           $popover.on("click", ".btn", addLink);
           return $popover.on("keydown", ":input", function(e) {
-            if (e.keyCode === 13) {
-              e.preventDefault();
-              return addLink(e);
+            switch (e.keyCode) {
+              case 27:
+                return destroyPopover();
+              case 13:
+                e.preventDefault();
+                return addLink();
             }
           });
         }
