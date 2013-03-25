@@ -1,6 +1,6 @@
 WysiHat = { Helpers: {} }
 
 # Set wysihat as a jQuery plugin
-$.fn.wysihat = ->
+$.fn.wysihat = (opts = {}) ->
   @each ->
-    $(@).data 'wysihat', new WysiHat.Editor($(@))
+    $(@).data 'wysihat', new WysiHat.Editor($(@), opts)

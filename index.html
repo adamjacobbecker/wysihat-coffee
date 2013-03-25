@@ -11,7 +11,11 @@
 
   <script>
     $(function() {
-      $('#content').wysihat();
+      $('#content').wysihat({
+        onSubmit: function(){
+          console.log($("#content").val());
+        }
+      });
     });
   </script>
 

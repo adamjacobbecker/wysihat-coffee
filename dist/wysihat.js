@@ -4,9 +4,12 @@ WysiHat = {
   Helpers: {}
 };
 
-$.fn.wysihat = function() {
+$.fn.wysihat = function(opts) {
+  if (opts == null) {
+    opts = {};
+  }
   return this.each(function() {
-    return $(this).data('wysihat', new WysiHat.Editor($(this)));
+    return $(this).data('wysihat', new WysiHat.Editor($(this), opts));
   });
 };
 
@@ -629,7 +632,7 @@ if (jQuery.browser.msie) {
 
 WysiHat.Editor = (function() {
 
-  function Editor($textarea) {
+  function Editor($textarea, opts) {
     var _this = this;
     this.$el = $("<div id=\"" + $textarea.attr("id") + "_editor" + "\" class=\"editor\" contentEditable=\"true\"></div>");
     this.$el.html(WysiHat.Formatting.getBrowserMarkupFrom($textarea.val()));
@@ -637,8 +640,8 @@ WysiHat.Editor = (function() {
     $textarea.hide();
     $textarea.closest("form").submit(function(e) {
       e.preventDefault();
-      console.log(WysiHat.Formatting.getApplicationMarkupFrom(_this.$el));
-      return $textarea.val(WysiHat.Formatting.getApplicationMarkupFrom(_this.$el));
+      $textarea.val(WysiHat.Formatting.getApplicationMarkupFrom(_this.$el));
+      return typeof opts.onSubmit === "function" ? opts.onSubmit() : void 0;
     });
     this.toolbar = new WysiHat.Toolbar(this);
     $.extend(this.$el, {
