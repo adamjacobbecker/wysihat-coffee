@@ -55,8 +55,9 @@ class WysiHat.Toolbar
         range = WysiHat.Helpers.Selection.save()
         selection = window.getSelection()
         return if selection.rangeCount == 0
+        highlightApplier = rangy.createCssClassApplier("highlighted", true)
+        highlightApplier.applyToSelection()
         range = selection.getRangeAt(0)
-        range.wrap $("<span id='fake-selection'></span>")
 
         $btn.popover 'show'
 
@@ -70,7 +71,7 @@ class WysiHat.Toolbar
         addLink = ->
           WysiHat.Helpers.Selection.restore(range)
           editor.commands.link.call(editor, $popover.find(":input").val())
-          $("#fake-selection").contents().unwrap()
+          highlightApplier.undoToSelection()
           $btn.popover 'destroy'
 
         $popover.on "click", ".btn", addLink

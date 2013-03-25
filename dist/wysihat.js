@@ -883,11 +883,7 @@ WysiHat.States = {
   linked: function() {
     var node;
     node = window.getSelection().getNode();
-    if (node) {
-      return node.get(0).tagName.toUpperCase() === "A";
-    } else {
-      return false;
-    }
+    return $(node).closest('a').length > 0;
   },
   /*
     WysiHat.Commands#orderedListSelected() -> boolean
@@ -1380,7 +1376,7 @@ WysiHat.Toolbar = (function() {
         name: "linked",
         label: "<i class='icon-link'></i> Link",
         handler: function(editor, e) {
-          var $btn, $popover, addLink, destroyPopover, range, selection;
+          var $btn, $popover, addLink, destroyPopover, highlightApplier, range, selection;
           if (editor.states.linked()) {
             return editor.commands.unlink.call(editor);
           }
@@ -1407,8 +1403,9 @@ WysiHat.Toolbar = (function() {
           if (selection.rangeCount === 0) {
             return;
           }
+          highlightApplier = rangy.createCssClassApplier("highlighted", true);
+          highlightApplier.applyToSelection();
           range = selection.getRangeAt(0);
-          range.wrap($("<span id='fake-selection'></span>"));
           $btn.popover('show');
           $popover = $btn.data('popover').$tip;
           $popover.find(":input").focus().val($popover.find(":input").val());
@@ -1423,7 +1420,7 @@ WysiHat.Toolbar = (function() {
           addLink = function() {
             WysiHat.Helpers.Selection.restore(range);
             editor.commands.link.call(editor, $popover.find(":input").val());
-            $("#fake-selection").contents().unwrap();
+            highlightApplier.undoToSelection();
             return $btn.popover('destroy');
           };
           $popover.on("click", ".btn", addLink);

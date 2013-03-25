@@ -19,7 +19,7 @@ WysiHat.States =
 
   linked: ->
     node = window.getSelection().getNode()
-    (if node then node.get(0).tagName.toUpperCase() is "A" else false)
+    $(node).closest('a').length > 0
 
   ###
   WysiHat.Commands#orderedListSelected() -> boolean
