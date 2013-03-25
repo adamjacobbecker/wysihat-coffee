@@ -31,14 +31,16 @@ class WysiHat.Toolbar
       name: "linked"
       label: "<i class='icon-link'></i> Link"
       handler: (editor, e) ->
-        return editor.commands.unlink.call(editor) if editor.states.linked()
+        if editor.states.linked()
+          editor.destroyCurrentTooltipElement?()
+          return editor.commands.unlink.call(editor)
 
         $btn = $(e.target).closest(".btn")
 
         destroyPopover = ->
           $(document).off ".popover"
           WysiHat.Helpers.Selection.restore(range)
-          highlightApplier.undoToSelection()
+          editor.highlightApplier.undoToSelection()
           $btn.popover 'destroy'
 
         return destroyPopover() if $btn.data('popover')
@@ -57,8 +59,7 @@ class WysiHat.Toolbar
         range = WysiHat.Helpers.Selection.save()
         selection = window.getSelection()
         return if selection.rangeCount == 0
-        highlightApplier = rangy.createCssClassApplier("highlighted", true)
-        highlightApplier.applyToSelection()
+        editor.highlightApplier.applyToSelection()
         range = selection.getRangeAt(0)
 
         $btn.popover 'show'

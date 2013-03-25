@@ -633,7 +633,9 @@ if (jQuery.browser.msie) {
 WysiHat.Editor = (function() {
 
   function Editor($textarea, opts) {
-    var _this = this;
+    var editor,
+      _this = this;
+    editor = this;
     this.$el = $("<div id=\"" + $textarea.attr("id") + "_editor" + "\" class=\"editor\" contentEditable=\"true\"></div>");
     this.$el.html(WysiHat.Formatting.getBrowserMarkupFrom($textarea.val()));
     $textarea.before(this.$el);
@@ -644,10 +646,38 @@ WysiHat.Editor = (function() {
       return typeof opts.onSubmit === "function" ? opts.onSubmit() : void 0;
     });
     this.toolbar = new WysiHat.Toolbar(this);
+    rangy.init();
     $.extend(this.$el, {
       commands: WysiHat.Commands,
       states: WysiHat.States,
-      execCommand: WysiHat.ExecCommand
+      execCommand: WysiHat.ExecCommand,
+      highlightApplier: rangy.createCssClassApplier("highlighted", true)
+    });
+    this.$el.on("click", "a", function(e) {
+      var $currentTooltipElement, tooltipHandler,
+        _this = this;
+      if ($(this).data('tooltip')) {
+        return;
+      }
+      $(this).tooltip({
+        html: true,
+        title: "<a href='" + ($(this).attr('href')) + "' target='_blank'>" + ($(this).attr('href')) + "</a>",
+        trigger: 'manual',
+        container: 'body'
+      });
+      $(this).tooltip('show');
+      $currentTooltipElement = $(this);
+      editor.$el.destroyCurrentTooltipElement = function() {
+        $(document).off("click", tooltipHandler);
+        return $(_this).tooltip('destroy');
+      };
+      tooltipHandler = function(e) {
+        if ($(e.target).closest($(_this).data('tooltip').$tip).length === 0) {
+          return editor.$el.destroyCurrentTooltipElement();
+        }
+      };
+      $(document).on("click", tooltipHandler);
+      return e.stopPropagation();
     });
   }
 
@@ -1376,15 +1406,18 @@ WysiHat.Toolbar = (function() {
         name: "linked",
         label: "<i class='icon-link'></i> Link",
         handler: function(editor, e) {
-          var $btn, $popover, addLink, destroyPopover, highlightApplier, range, selection;
+          var $btn, $popover, addLink, destroyPopover, range, selection;
           if (editor.states.linked()) {
+            if (typeof editor.destroyCurrentTooltipElement === "function") {
+              editor.destroyCurrentTooltipElement();
+            }
             return editor.commands.unlink.call(editor);
           }
           $btn = $(e.target).closest(".btn");
           destroyPopover = function() {
             $(document).off(".popover");
             WysiHat.Helpers.Selection.restore(range);
-            highlightApplier.undoToSelection();
+            editor.highlightApplier.undoToSelection();
             return $btn.popover('destroy');
           };
           if ($btn.data('popover')) {
@@ -1402,8 +1435,7 @@ WysiHat.Toolbar = (function() {
           if (selection.rangeCount === 0) {
             return;
           }
-          highlightApplier = rangy.createCssClassApplier("highlighted", true);
-          highlightApplier.applyToSelection();
+          editor.highlightApplier.applyToSelection();
           range = selection.getRangeAt(0);
           $btn.popover('show');
           $popover = $btn.data('popover').$tip;
